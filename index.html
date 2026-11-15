@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JUMAT BERKAH - Berbagi Makanan</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--green:#176b45;--dark:#10452f;--cream:#fffaf0;--gold:#d5a84b}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:var(--cream);color:#26352c}
+header{background:var(--green);color:white;padding:25px 18px;text-align:center}
+header h1{margin:0;font-size:28px;letter-spacing:1px}
+header p{margin:9px 0 0}
+main{max-width:720px;margin:auto;padding:18px}
+.card{background:white;border-radius:16px;padding:20px;margin:16px 0;box-shadow:0 4px 18px #0000000d}
+h2{color:var(--green);margin-top:0}
+.hero{text-align:center}
+.hero img{width:100%;max-height:260px;object-fit:cover;border-radius:12px}
+.price{color:var(--green);font-weight:bold}
+label{display:block;font-weight:bold;margin:13px 0 6px}
+input,textarea,select{width:100%;padding:12px;border:1px solid #ddd;border-radius:9px;font-size:16px;background:white}
+textarea{min-height:75px}
+button{border:0;border-radius:10px;padding:13px 17px;background:var(--green);color:white;font-size:16px;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.5}
+.tabs{display:flex;gap:8px;margin-bottom:15px}
+.tabs button{flex:1;background:#e8eee8;color:var(--dark)}
+.tabs button.active{background:var(--green);color:white}
+.full{width:100%;margin-top:15px}
+.muted{color:#68766d;font-size:13px;line-height:1.5}
+.hidden{display:none!important}
+.total{background:#f0f6ef;padding:14px;border-radius:10px;margin-top:14px}
+.total strong{color:var(--green);font-size:21px}
+.menu-item{border:1px solid #e6e6e6;border-radius:10px;padding:12px;margin:8px 0}
+.menu-item b{color:var(--green)}
+#adminPanel{display:none}
+.order{border:1px solid #ddd;padding:12px;border-radius:10px;margin:10px 0}
+footer{text-align:center;padding:25px;color:#657268;font-size:13px}
+.float-wa{position:fixed;right:16px;bottom:16px;border-radius:50px;background:#168b50;color:white;padding:14px 18px;text-decoration:none;font-weight:bold;box-shadow:0 3px 12px #0003}
+</style>
+</head>
+<body>
+
+<header>
+<h1>JUMAT BERKAH</h1>
+<p>Berbagi Makanan, Menebar Kebaikan</p>
+<p>Sidoarjo</p>
+</header>
+
+<main>
+<section class="card hero">
+<img src="nasi.jpg" alt="Makanan Jumat Berkah"
+onerror="this.style.display='none'">
+<h2>Berbagi Kebaikan Setiap Jumat</h2>
+<p>Mari ikut berbagi makanan dan menghadirkan kebahagiaan untuk sesama.</p>
+</section>
+
+<section class="card">
+<h2>Pilihan Menu</h2>
+<div class="menu-item">
+<b>Nasi Bungkus</b><br>
+<span class="price">Rp5.000 / bungkus</span>
+</div>
+<div class="menu-item">
+<b>Ayam Kocak</b><br>
+<span class="price">Rp15.000 / porsi</span>
+</div>
+<p class="muted">Pilih menu saat mengisi formulir pemesanan.</p>
+</section>
+
+<section class="card" id="donationSection">
+<h2>Formulir Donasi</h2>
+<div class="tabs">
+<button id="foodTab" class="active" onclick="showTab('food')">Pesan Nasi</button>
+<button id="donationTab" onclick="showTab('donation')">Hanya Sedekah</button>
+</div>
+
+<div id="foodForm">
+<label>Nama Donatur</label>
+<input id="foodName" placeholder="Masukkan nama">
+
+<label>Pilih Menu</label>
+<select id="menu">
+<option value="nasi">Nasi Bungkus - Rp5.000</option>
+<option value="ayam">Ayam Kocak - Rp15.000</option>
+</select>
+
+<label>Jumlah bungkus / porsi</label>
+<input id="qty" type="number" min="1" value="1">
+
+<label>Nominal Donasi (otomatis)</label>
+<input id="foodAmount" readonly>
+
+<div class="total">
+Total pembayaran:<br>
+<strong id="foodTotal">Rp5.000</strong>
+</div>
+
+<label>Catatan untuk admin (opsional)</label>
+<textarea id="foodNote" placeholder="Catatan tambahan atau nomor WhatsApp jika ingin menerima dokumentasi penyaluran."></textarea>
+
+<button class="full" onclick="submitFood()">Lanjutkan Pembayaran</button>
+</div>
+
+<div id="donationForm" class="hidden">
+<label>Nama Donatur</label>
+<input id="donationName" placeholder="Masukkan nama">
+
+<label>Catatan untuk admin (opsional)</label>
+<textarea id="donationNote" placeholder="Catatan tambahan atau nomor WhatsApp jika ingin menerima dokumentasi penyaluran."></textarea>
+
+<p class="muted">Nominal sedekah dapat dimasukkan langsung di aplikasi pembayaran QRIS.</p>
+<button class="full" onclick="submitDonation()">Lanjutkan Pembayaran</button>
+</div>
+</section>
+
+<section class="card hidden" id="paymentSection">
+<h2>Pembayaran QRIS</h2>
+<p id="paymentDescription"></p>
+<img src="qris.jpg" alt="QRIS JUMAT BERKAH"
+style="width:100%;max-width:350px;display:block;margin:15px auto"
+onerror="this.style.display='none'">
+<p class="muted">Silakan pindai QRIS menggunakan aplikasi pembayaran. Untuk QRIS statis, masukkan nominal pembayaran secara manual sesuai jumlah yang tertera.</p>
+<button class="full" onclick="backToForm()">Kembali ke Formulir</button>
+<p class="muted">Setelah membayar, admin akan memeriksa transaksi dan memperbarui status pesanan.</p>
+</section>
+
+<section class="card">
+<h2>Informasi</h2>
+<p>Terima kasih telah ikut mendukung kegiatan JUMAT BERKAH. Semoga setiap kebaikan menjadi keberkahan bagi kita semua.</p>
+</section>
+
+<section class="card">
+<h2>Admin</h2>
+<div id="loginBox">
+<label>Email Admin</label>
+<input id="adminEmail" type="email" placeholder="Email admin">
+<label>Password</label>
+<input id="adminPassword" type="password" placeholder="Password admin">
+<button class="full" onclick="adminLogin()">Masuk Dashboard</button>
+</div>
+<div id="adminPanel">
+<h2>Dashboard Pesanan</h2>
+<div id="stats"></div>
+<div id="orders"></div>
+<hr>
+<h2>Dokumentasi Kegiatan</h2>
+<label>Foto kegiatan</label>
+<input type="file" id="galleryFile" accept="image/*">
+<label>Caption foto</label>
+<input id="galleryCaption" placeholder="Keterangan foto">
+<button class="full" onclick="uploadGallery()">Upload Dokumentasi</button>
+<div id="galleryList"></div>
+<button class="full" onclick="adminLogout()">Keluar Admin</button>
+</div>
+</section>
+</main>
+
+<footer>
+JUMAT BERKAH • Sidoarjo<br>
+Berbagi Makanan, Menebar Kebaikan
+</footer>
+
+<a class="float-wa" href="https://wa.me/6281358164998" target="_blank">WhatsApp Admin</a>
+
+<script>
+// GANTI DUA NILAI DI BAWAH INI DENGAN DATA PROJECT SUPABASE MILIKMU
+const SUPABASE_URL = "https://lhgqssxglazasgpfbjfd.supabase.co";
+const SUPABASE_KEY = "sb_publishable_QDkk74_lWtUM5iN9RN5v2g_HTgekfs2";
+
+const db = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const BUCKET = "dokumentasi-jumat-berkah";
+const prices = {nasi:5000,ayam:15000};
+const menuNames = {nasi:"Nasi Bungkus",ayam:"Ayam Kocak"};
+
+let currentOrder = null;
+
+function rupiah(n){
+ return new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n||0);
+}
+
+function showTab(tab){
+ document.getElementById("foodForm").classList.toggle("hidden",tab!=="food");
+ document.getElementById("donationForm").classList.toggle("hidden",tab!=="donation");
+ document.getElementById("foodTab").classList.toggle("active",tab==="food");
+ document.getElementById("donationTab").classList.toggle("active",tab==="donation");
+}
+
+function updateTotal(){
+ const menu=document.getElementById("menu").value;
+ const qty=Math.max(1,parseInt(document.getElementById("qty").value)||1);
+ const total=prices[menu]*qty;
+ document.getElementById("qty").value=qty;
+ document.getElementById("foodAmount").value=rupiah(total);
+ document.getElementById("foodTotal").textContent=rupiah(total);
+}
+
+document.getElementById("menu").addEventListener("change",updateTotal);
+document.getElementById("qty").addEventListener("input",updateTotal);
+updateTotal();
+
+async function submitFood(){
+ const name=document.getElementById("foodName").value.trim();
+ const menu=document.getElementById("menu").value;
+ const qty=parseInt(document.getElementById("qty").value);
+ const note=document.getElementById("foodNote").value.trim();
+
+ if(!name){alert("Nama donatur harus diisi.");return;}
+ if(!qty||qty<1){alert("Jumlah minimal 1.");return;}
+
+ const amount=prices[menu]*qty;
+ const fullNote="Menu: "+menuNames[menu]+(note?" | Catatan: "+note:"");
+
+ const {data,error}=await db.from("orders").insert({
+  donor_name:name,
+  order_type:"food",
+  package_qty:qty,
+  amount:amount,
+  note:fullNote,
+  status:"pending"
+ }).select().single();
+
+ if(error){alert("Pesanan belum berhasil disimpan: "+error.message);return;}
+
+ currentOrder=data;
+ showPayment("Pesanan "+menuNames[menu]+" sebanyak "+qty+" dengan total "+rupiah(amount)+".");
+}
+
+async function submitDonation(){
+ const name=document.getElementById("donationName").value.trim();
+ const note=document.getElementById("donationNote").value.trim();
+
+ if(!name){alert("Nama donatur harus diisi.");return;}
+
+ const {data,error}=await db.from("orders").insert({
+  donor_name:name,
+  order_type:"donation",
+  package_qty:null,
+  amount:null,
+  note:note,
+  status:"pending"
+ }).select().single();
+
+ if(error){alert("Sedekah belum berhasil dicatat: "+error.message);return;}
+
+ currentOrder=data;
+ showPayment("Silakan masukkan nominal sedekah langsung di aplikasi pembayaran QRIS.");
+}
+
+function showPayment(message){
+ document.getElementById("donationSection").classList.add("hidden");
+ document.getElementById("paymentSection").classList.remove("hidden");
+ document.getElementById("paymentDescription").textContent=message;
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function backToForm(){
+ document.getElementById("paymentSection").classList.add("hidden");
+ document.getElementById("donationSection").classList.remove("hidden");
+}
+
+async function adminLogin(){
+ const email=document.getElementById("adminEmail").value.trim();
+ const password=document.getElementById("adminPassword").value;
+
+ const {data,error}=await db.auth.signInWithPassword({email,password});
+ if(error){alert("Login gagal. Periksa email dan password.");return;}
+
+ const {data:admin,error:adminError}=await db.from("admin_users")
+ .select("user_id").eq("user_id",data.user.id).maybeSingle();
+
+ if(adminError||!admin){
+  await db.auth.signOut();
+  alert("Akun ini tidak terdaftar sebagai admin.");
+  return;
+ }
+
+ document.getElementById("loginBox").classList.add("hidden");
+ document.getElementById("adminPanel").style.display="block";
+ await loadDashboard();
+}
+
+async function adminLogout(){
+ await db.auth.signOut();
+ document.getElementById("adminPanel").style.display="none";
+ document.getElementById("loginBox").classList.remove("hidden");
+}
+
+async function loadDashboard(){
+ const {data,error}=await db.from("orders").select("*").order("created_at",{ascending:false});
+ if(error){alert("Gagal memuat pesanan: "+error.message);return;}
+
+ const paid=data.filter(x=>x.status==="paid");
+ const pending=data.filter(x=>x.status==="pending");
+ const paidTotal=paid.reduce((s,x)=>s+(Number(x.amount)||0),0);
+ const pendingTotal=pending.reduce((s,x)=>s+(Number(x.amount)||0),0);
+ const packages=paid.reduce((s,x)=>s+(Number(x.package_qty)||0),0);
+
+ document.getElementById("stats").innerHTML=
+ `<div class="total">Total pembayaran terkonfirmasi: <strong>${rupiah(paidTotal)}</strong><br>
+ Pembayaran tertunda: ${rupiah(pendingTotal)}<br>
+ Total bungkus/porsi terkonfirmasi: ${packages}<br>
+ Jumlah donatur/pesanan: ${data.length}</div>`;
+
+ document.getElementById("orders").innerHTML=data.map(x=>{
+  const note=x.note||"-";
+  return `<div class="order">
+  <b>${escapeHtml(x.donor_name)}</b><br>
+  Jenis: ${x.order_type==="food"?"Pesan makanan":"Hanya sedekah"}<br>
+  Jumlah: ${x.package_qty||"-"}<br>
+  Nominal: ${x.amount===null?"Belum diisi":rupiah(x.amount)}<br>
+  Catatan: ${escapeHtml(note)}<br>
+  Status: <b>${x.status==="paid"?"LUNAS":"MENUNGGU"}</b><br>
+  ${x.status==="pending"?`
+  <label>Nominal aktual untuk konfirmasi</label>
+  <input type="number" min="1" id="amount-${x.id}" value="${x.amount||""}" placeholder="Nominal yang diterima">
+  <button class="full" onclick="markPaid('${x.id}','${x.order_type}')">Tandai Sudah Dibayar</button>`:""}
+  </div>`;
+ }).join("");
+
+ await loadGallery();
+}
+
+function escapeHtml(value){
+ return String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+async function markPaid(id,type){
+ let update={status:"paid"};
+ if(type==="donation"){
+  const amount=Number(document.getElementById("amount-"+id).value);
+  if(!amount||amount<1){alert("Masukkan nominal yang benar.");return;}
+  update.amount=amount;
+ }
+ const {error}=await db.from("orders").update(update).eq("id",id);
+ if(error){alert("Gagal memperbarui: "+error.message);return;}
+ alert("Status pesanan berhasil diperbarui.");
+ await loadDashboard();
+}
+
+async function uploadGallery(){
+ const file=document.getElementById("galleryFile").files[0];
+ const caption=document.getElementById("galleryCaption").value.trim();
+ if(!file){alert("Pilih foto terlebih dahulu.");return;}
+
+ const path=crypto.randomUUID()+"-"+file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+ const {error:uploadError}=await db.storage.from(BUCKET).upload(path,file);
+ if(uploadError){alert("Upload gagal: "+uploadError.message);return;}
+
+ const {data:urlData}=db.storage.from(BUCKET).getPublicUrl(path);
+ const {error}=await db.from("gallery").insert({
+  photo_url:urlData.publicUrl,
+  caption:caption
+ });
+
+ if(error){alert("Foto terunggah, tetapi catatan galeri gagal: "+error.message);return;}
+ alert("Dokumentasi berhasil diunggah.");
+ document.getElementById("galleryFile").value="";
+ document.getElementById("galleryCaption").value="";
+ await loadGallery();
+}
+
+async function loadGallery(){
+ const {data,error}=await db.from("gallery").select("*").order("created_at",{ascending:false});
+ if(error)return;
+ document.getElementById("galleryList").innerHTML=(data||[]).map(x=>
+ `<div class="order"><img src="${escapeHtml(x.photo_url)}" style="width:100%;border-radius:8px">
+ <p>${escapeHtml(x.caption||"")}</p></div>`
+ ).join("");
+}
+</script>
+</body>
+  </html>
