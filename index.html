@@ -522,4 +522,55 @@ function getGalleryStoragePath(photoUrl){
 
 /* HAPUS SATU FOTO DOKUMENTASI */
 async function deleteGalleryPhoto(photoUrl){
- if(!confirm("Yakin i if(!confirm("Yakin i
+ if(!confirm("Yakin ingin menghapus foto dokumentasi ini secara permanen?"))return;
+
+ const storagePath=getGalleryStoragePath(photoUrl);
+
+ if(!storagePath){
+  alert("Lokasi file foto tidak dikenali. Foto tidak dihapus.");
+  return;
+ }
+
+ const {error:storageError}=await db.storage.from(BUCKET).remove([storagePath]);
+
+ if(storageError){
+  alert("Gagal menghapus file foto: "+storageError.message);
+  return;
+ }
+
+ const {error}=await db.from("gallery").delete().eq("photo_url",photoUrl);
+
+ if(error){
+  alert("File foto sudah dihapus, tetapi catatan galeri gagal dihapus: "+error.message);
+  await loadGallery();
+  await loadPublicGallery();
+  return;
+ }
+
+ alert("Foto dokumentasi berhasil dihapus.");
+ await loadGallery();
+ await loadPublicGallery();
+}
+
+/* GALERI DI DASHBOARD ADMIN */
+async function loadGallery(){
+ const {data,error}=await db.from("gallery").select("*").order("created_at",{ascending:false});
+ if(error){
+  document.getElementById("galleryList").innerHTML='<p class="muted">Gagal memuat dokumentasi: '+escapeHtml(error.message)+'</p>';
+  return;
+ }
+
+ document.getElementById("galleryList").innerHTML=(data||[]).map(x=>
+ `<div class="order">
+ <img src="${escapeHtml(x.photo_url)}" style="width:100%;border-radius:8px">
+ <p>${escapeHtml(x.caption||"")}</p>
+ <button class="full outline-danger" onclick="deleteGalleryPhoto('${escapeHtml(x.photo_url)}')">Hapus Foto Ini</button>
+ </div>`
+ ).join("")||'<p class="muted">Belum ada dokumentasi yang diunggah.</p>';
+}
+
+/* TAMPILKAN GALERI SAAT HALAMAN DIBUKA */
+loadPublicGallery();
+</script>
+</body>
+</html>
