@@ -162,8 +162,14 @@ Total pembayaran:<br>
 
 <div class="bank-info">
 <strong>TRANSFER BANK BCA</strong>
-<h2>3251889242</h2>
+<h2 id="rekeningBCA">3251889242</h2>
+
+<button type="button" onclick="salinRekening()">
+SALIN NOMOR REKENING
+</button>
+
 <div class="bank-name">Atas Nama: MAS SOFIYAN ALI</div>
+<p id="pesanSalin" class="muted"></p>
 </div>
 
 <p style="text-align:center;font-weight:bold">ATAU BAYAR DENGAN QRIS</p>
@@ -327,7 +333,14 @@ function backToForm(){
  document.getElementById("paymentSection").classList.add("hidden");
  document.getElementById("donationSection").classList.remove("hidden");
 }
-
+async function salinRekening(){
+ try{
+  await navigator.clipboard.writeText("3251889242");
+  document.getElementById("pesanSalin").textContent="Nomor rekening berhasil disalin!";
+ }catch(error){
+  document.getElementById("pesanSalin").textContent="Gagal menyalin. Silakan salin nomor secara manual.";
+ }
+}
 async function adminLogin(){
  const email=document.getElementById("adminEmail").value.trim();
  const password=document.getElementById("adminPassword").value;
