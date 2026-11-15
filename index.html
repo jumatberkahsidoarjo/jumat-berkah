@@ -32,27 +32,10 @@ button:disabled{opacity:.5}
 .hidden{display:none!important}
 .total{background:#f0f6ef;padding:14px;border-radius:10px;margin-top:14px}
 .total strong{color:var(--green);font-size:21px}
-.bank-info{
- background:#f5f7f5;
- border:1px solid #ddd;
- border-radius:12px;
- padding:16px;
- margin:16px 0;
- color:#000;
- text-align:center;
-}
-.bank-info strong,
-.bank-info h2,
-.bank-info .bank-name{
- color:#000 !important;
-}
-.bank-info h2{
- margin:10px 0;
- font-size:25px;
-}
-.bank-info .bank-name{
- font-weight:bold;
-}
+.bank-info{background:#f5f7f5;border:1px solid #ddd;border-radius:12px;padding:16px;margin:16px 0;color:#000;text-align:center}
+.bank-info strong,.bank-info h2,.bank-info .bank-name{color:#000!important}
+.bank-info h2{margin:10px 0;font-size:25px}
+.bank-info .bank-name{font-weight:bold}
 .menu-item{border:1px solid #e6e6e6;border-radius:10px;padding:12px;margin:8px 0}
 .menu-item b{color:var(--green)}
 #adminPanel{display:none}
@@ -67,7 +50,20 @@ footer{text-align:center;padding:25px;color:#657268;font-size:13px}
 .menu-choice strong{color:var(--dark);font-size:15px}
 .menu-choice span{font-size:13px;color:#68766d}
 .menu-choice.selected{border-color:var(--green);background:#f0f8f1;box-shadow:0 0 0 1px var(--green)}
-@media(max-width:380px){.menu-options{gap:8px}.menu-choice{padding:12px 9px}.menu-choice strong{font-size:14px}}
+.gallery-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.gallery-photo{border:1px solid #e5e5e5;border-radius:12px;overflow:hidden;background:white}
+.gallery-photo img{width:100%;height:180px;object-fit:cover;display:block}
+.gallery-caption{padding:10px;font-size:14px;line-height:1.5;overflow-wrap:anywhere}
+.danger-button{background:#b42318}
+.outline-danger{background:white;color:#b42318;border:1px solid #b42318}
+.admin-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:15px 0}
+.admin-actions button{font-size:13px;padding:12px 8px}
+@media(max-width:380px){
+ .menu-options{gap:8px}
+ .menu-choice{padding:12px 9px}
+ .menu-choice strong{font-size:14px}
+ .gallery-grid{grid-template-columns:1fr 1fr}
+}
 </style>
 </head>
 <body>
@@ -80,8 +76,7 @@ footer{text-align:center;padding:25px;color:#657268;font-size:13px}
 
 <main>
 <section class="card hero">
-<img src="1794742992549.jpg" alt="Makanan Jumat Berkah"
-onerror="this.style.display='none'">
+<img src="1794742992549.jpg" alt="Makanan Jumat Berkah" onerror="this.style.display='none'">
 <h2>Berbagi Kebaikan Setiap Jumat</h2>
 <p>Mari ikut berbagi makanan dan menghadirkan kebahagiaan untuk sesama.</p>
 </section>
@@ -117,7 +112,6 @@ onerror="this.style.display='none'">
 <strong>🍚 Nasi Bungkus</strong>
 <span>Rp5.000 / bungkus</span>
 </label>
-
 <label class="menu-choice" id="choiceAyam">
 <input type="radio" name="menuChoice" value="ayam" onchange="chooseMenu('ayam')">
 <strong>🍗 Ayam Kocak</strong>
@@ -147,10 +141,8 @@ Total pembayaran:<br>
 <div id="donationForm" class="hidden">
 <label>Nama Donatur</label>
 <input id="donationName" placeholder="Masukkan nama">
-
 <label>Catatan untuk admin (opsional)</label>
 <textarea id="donationNote" placeholder="Catatan tambahan atau nomor WhatsApp jika ingin menerima dokumentasi penyaluran."></textarea>
-
 <p class="muted">Nominal sedekah dapat dimasukkan langsung di aplikasi pembayaran QRIS.</p>
 <button class="full" onclick="submitDonation()">Lanjutkan Pembayaran</button>
 </div>
@@ -163,25 +155,15 @@ Total pembayaran:<br>
 <div class="bank-info">
 <strong>TRANSFER BANK BCA</strong>
 <h2 id="rekeningBCA">3251889242</h2>
-
-<button type="button" onclick="salinRekening()">
-SALIN NOMOR REKENING
-</button>
-
+<button type="button" onclick="salinRekening()">SALIN NOMOR REKENING</button>
 <div class="bank-name">Atas Nama: MAS SOFIYAN ALI</div>
 <p id="pesanSalin" class="muted"></p>
 </div>
 
 <p style="text-align:center;font-weight:bold">ATAU BAYAR DENGAN QRIS</p>
-
-<img src="qr_ID1026546956610_09.11.26_1794238044_1794238044593.jpeg" alt="QRIS JUMAT BERKAH"
-style="width:100%;max-width:350px;display:block;margin:15px auto"
-onerror="this.style.display='none'">
-
+<img src="qr_ID1026546956610_09.11.26_1794238044_1794238044593.jpeg" alt="QRIS JUMAT BERKAH" style="width:100%;max-width:350px;display:block;margin:15px auto" onerror="this.style.display='none'">
 <p class="muted">Silakan pindai QRIS menggunakan aplikasi pembayaran. Untuk QRIS statis, masukkan nominal pembayaran secara manual sesuai jumlah yang tertera.</p>
-
 <button class="full" onclick="backToForm()">Kembali ke Formulir</button>
-
 <p class="muted">Setelah membayar, admin akan memeriksa transaksi dan memperbarui status pesanan.</p>
 </section>
 
@@ -190,6 +172,16 @@ onerror="this.style.display='none'">
 <p>Terima kasih telah ikut mendukung kegiatan JUMAT BERKAH. Semoga setiap kebaikan menjadi keberkahan bagi kita semua.</p>
 </section>
 
+<!-- DOKUMENTASI PUBLIK -->
+<section class="card" id="publicGallerySection">
+<h2>Dokumentasi</h2>
+<p class="muted">Foto kegiatan berbagi JUMAT BERKAH.</p>
+<div id="publicGallery" class="gallery-grid">
+<p class="muted">Memuat dokumentasi...</p>
+</div>
+</section>
+
+<!-- ADMIN -->
 <section class="card hidden" id="adminAccess">
 <h2>Login Admin</h2>
 <div id="loginBox">
@@ -203,6 +195,13 @@ onerror="this.style.display='none'">
 <div id="adminPanel">
 <h2>Dashboard Pesanan</h2>
 <div id="stats"></div>
+
+<div class="admin-actions">
+<button class="outline-danger" onclick="deleteAllOrders('paid')">Hapus Semua Lunas</button>
+<button class="danger-button" onclick="deleteAllOrders('all')">Hapus Semua Riwayat</button>
+</div>
+<p class="muted">Hapus Semua Lunas hanya menghapus pesanan berstatus lunas. Hapus Semua Riwayat menghapus seluruh pesanan, termasuk yang masih menunggu pembayaran.</p>
+
 <div id="orders"></div>
 <hr>
 <h2>Dokumentasi Kegiatan</h2>
@@ -261,14 +260,11 @@ function chooseMenu(value){
  updateTotal();
 }
 
-/* DIPERBAIKI: kolom jumlah tidak lagi dipaksa kembali ke angka 1 */
 function updateTotal(){
  const menu=document.getElementById("menu").value;
- const qtyInput=document.getElementById("qty");
- const qty=parseInt(qtyInput.value,10);
+ const qty=parseInt(document.getElementById("qty").value,10);
  const jumlah=Number.isFinite(qty)&&qty>0?qty:0;
  const total=prices[menu]*jumlah;
-
  document.getElementById("foodAmount").value=rupiah(total);
  document.getElementById("foodTotal").textContent=rupiah(total);
 }
@@ -298,7 +294,6 @@ async function submitFood(){
  });
 
  if(error){alert("Pesanan belum berhasil disimpan: "+error.message);return;}
-
  showPayment("Pesanan "+menuNames[menu]+" sebanyak "+qty+" dengan total "+rupiah(amount)+".");
 }
 
@@ -318,7 +313,6 @@ async function submitDonation(){
  });
 
  if(error){alert("Sedekah belum berhasil dicatat: "+error.message);return;}
-
  showPayment("Silakan masukkan nominal sedekah langsung di aplikasi pembayaran QRIS.");
 }
 
@@ -333,6 +327,7 @@ function backToForm(){
  document.getElementById("paymentSection").classList.add("hidden");
  document.getElementById("donationSection").classList.remove("hidden");
 }
+
 async function salinRekening(){
  try{
   await navigator.clipboard.writeText("3251889242");
@@ -341,6 +336,31 @@ async function salinRekening(){
   document.getElementById("pesanSalin").textContent="Gagal menyalin. Silakan salin nomor secara manual.";
  }
 }
+
+/* GALERI PUBLIK: dapat dilihat semua pengunjung */
+async function loadPublicGallery(){
+ const container=document.getElementById("publicGallery");
+ const {data,error}=await db.from("gallery").select("photo_url,caption,created_at").order("created_at",{ascending:false});
+
+ if(error){
+  container.innerHTML='<p class="muted">Dokumentasi belum dapat ditampilkan.</p>';
+  return;
+ }
+
+ if(!data||data.length===0){
+  container.innerHTML='<p class="muted">Belum ada foto dokumentasi yang diunggah.</p>';
+  return;
+ }
+
+ container.innerHTML=data.map(x=>`
+  <div class="gallery-photo">
+   <img src="${escapeHtml(x.photo_url)}" alt="Dokumentasi JUMAT BERKAH" loading="lazy">
+   <div class="gallery-caption">${escapeHtml(x.caption||"Kegiatan JUMAT BERKAH")}</div>
+  </div>
+ `).join("");
+}
+
+/* LOGIN ADMIN */
 async function adminLogin(){
  const email=document.getElementById("adminEmail").value.trim();
  const password=document.getElementById("adminPassword").value;
@@ -369,6 +389,7 @@ async function adminLogout(){
  document.getElementById("adminPassword").value="";
 }
 
+/* DASHBOARD ADMIN */
 async function loadDashboard(){
  const {data,error}=await db.from("orders").select("*").order("created_at",{ascending:false});
  if(error){alert("Gagal memuat pesanan: "+error.message);return;}
@@ -380,12 +401,14 @@ async function loadDashboard(){
  const packages=paid.reduce((s,x)=>s+(Number(x.package_qty)||0),0);
 
  document.getElementById("stats").innerHTML=
- `<div class="total">Total pembayaran terkonfirmasi: <strong>${rupiah(paidTotal)}</strong><br>
+ `<div class="total">
+ Total pembayaran terkonfirmasi: <strong>${rupiah(paidTotal)}</strong><br>
  Pembayaran tertunda: ${rupiah(pendingTotal)}<br>
  Total bungkus/porsi terkonfirmasi: ${packages}<br>
- Jumlah donatur/pesanan: ${data.length}</div>`;
+ Jumlah donatur/pesanan: ${data.length}
+ </div>`;
 
- document.getElementById("orders").innerHTML=data.map(x=>{
+ document.getElementById("orders").innerHTML=data.length?data.map(x=>{
   const note=x.note||"-";
   return `<div class="order">
   <b>${escapeHtml(x.donor_name)}</b><br>
@@ -398,8 +421,9 @@ async function loadDashboard(){
   <label>Nominal aktual untuk konfirmasi</label>
   <input type="number" min="1" id="amount-${x.id}" value="${x.amount||""}" placeholder="Nominal yang diterima">
   <button class="full" onclick="markPaid('${x.id}','${x.order_type}')">Tandai Sudah Dibayar</button>`:""}
+  <button class="full outline-danger" onclick="deleteOrder('${x.id}')">Hapus Pesanan Ini</button>
   </div>`;
- }).join("");
+ }).join(""):'<p class="muted">Belum ada riwayat pesanan.</p>';
 
  await loadGallery();
 }
@@ -408,19 +432,54 @@ function escapeHtml(value){
  return String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
 
+/* HAPUS SATU PESANAN */
+async function deleteOrder(id){
+ if(!confirm("Yakin ingin menghapus pesanan ini secara permanen?"))return;
+
+ const {error}=await db.from("orders").delete().eq("id",id);
+ if(error){alert("Gagal menghapus pesanan: "+error.message);return;}
+
+ alert("Pesanan berhasil dihapus.");
+ await loadDashboard();
+}
+
+/* HAPUS SEMUA PESANAN LUNAS ATAU SEMUA RIWAYAT */
+async function deleteAllOrders(mode){
+ let query=db.from("orders").delete();
+
+ if(mode==="paid"){
+  if(!confirm("Yakin ingin menghapus SEMUA riwayat pesanan yang sudah LUNAS?"))return;
+  query=query.eq("status","paid");
+ }else{
+  if(!confirm("PERHATIAN! Semua riwayat pesanan, termasuk yang masih MENUNGGU pembayaran, akan dihapus permanen. Lanjutkan?"))return;
+ }
+
+ const {data,error}=await query.select("id");
+ if(error){alert("Gagal menghapus riwayat: "+error.message);return;}
+
+ const jumlah=data?data.length:0;
+ alert(jumlah+" riwayat pesanan berhasil dihapus.");
+ await loadDashboard();
+}
+
+/* KONFIRMASI PEMBAYARAN */
 async function markPaid(id,type){
  let update={status:"paid"};
+
  if(type==="donation"){
   const amount=Number(document.getElementById("amount-"+id).value);
   if(!amount||amount<1){alert("Masukkan nominal yang benar.");return;}
   update.amount=amount;
  }
+
  const {error}=await db.from("orders").update(update).eq("id",id);
  if(error){alert("Gagal memperbarui: "+error.message);return;}
+
  alert("Status pesanan berhasil diperbarui.");
  await loadDashboard();
 }
 
+/* UPLOAD DOKUMENTASI */
 async function uploadGallery(){
  const file=document.getElementById("galleryFile").files[0];
  const caption=document.getElementById("galleryCaption").value.trim();
@@ -428,6 +487,7 @@ async function uploadGallery(){
 
  const path=crypto.randomUUID()+"-"+file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
  const {error:uploadError}=await db.storage.from(BUCKET).upload(path,file);
+
  if(uploadError){alert("Upload gagal: "+uploadError.message);return;}
 
  const {data:urlData}=db.storage.from(BUCKET).getPublicUrl(path);
@@ -437,20 +497,30 @@ async function uploadGallery(){
  });
 
  if(error){alert("Foto terunggah, tetapi catatan galeri gagal: "+error.message);return;}
- alert("Dokumentasi berhasil diunggah.");
+
+ alert("Dokumentasi berhasil diunggah dan ditampilkan di halaman utama.");
  document.getElementById("galleryFile").value="";
  document.getElementById("galleryCaption").value="";
+
  await loadGallery();
+ await loadPublicGallery();
 }
 
+/* GALERI DI DASHBOARD ADMIN */
 async function loadGallery(){
  const {data,error}=await db.from("gallery").select("*").order("created_at",{ascending:false});
  if(error)return;
+
  document.getElementById("galleryList").innerHTML=(data||[]).map(x=>
- `<div class="order"><img src="${escapeHtml(x.photo_url)}" style="width:100%;border-radius:8px">
- <p>${escapeHtml(x.caption||"")}</p></div>`
+ `<div class="order">
+ <img src="${escapeHtml(x.photo_url)}" style="width:100%;border-radius:8px">
+ <p>${escapeHtml(x.caption||"")}</p>
+ </div>`
  ).join("");
 }
+
+/* TAMPILKAN GALERI SAAT HALAMAN DIBUKA */
+loadPublicGallery();
 </script>
 </body>
 </html>
