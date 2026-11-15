@@ -211,7 +211,7 @@ async function submitFood(){
  const amount=prices[menu]*qty;
  const fullNote="Menu: "+menuNames[menu]+(note?" | Catatan: "+note:"");
 
- const {data,error}=await db.from("orders").insert({
+ const {error}=await db.from("orders").insert({
   donor_name:name,
   order_type:"food",
   package_qty:qty,
@@ -222,7 +222,6 @@ async function submitFood(){
 
  if(error){alert("Pesanan belum berhasil disimpan: "+error.message);return;}
 
- currentOrder=data;
  showPayment("Pesanan "+menuNames[menu]+" sebanyak "+qty+" dengan total "+rupiah(amount)+".");
 }
 
@@ -232,7 +231,7 @@ async function submitDonation(){
 
  if(!name){alert("Nama donatur harus diisi.");return;}
 
- const {data,error}=await db.from("orders").insert({
+ const {error}=await db.from("orders").insert({
   donor_name:name,
   order_type:"donation",
   package_qty:null,
@@ -242,8 +241,7 @@ async function submitDonation(){
  }).select().single();
 
  if(error){alert("Sedekah belum berhasil dicatat: "+error.message);return;}
-
- currentOrder=data;
+ 
  showPayment("Silakan masukkan nominal sedekah langsung di aplikasi pembayaran QRIS.");
 }
 
