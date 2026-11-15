@@ -172,7 +172,6 @@ Total pembayaran:<br>
 <p>Terima kasih telah ikut mendukung kegiatan JUMAT BERKAH. Semoga setiap kebaikan menjadi keberkahan bagi kita semua.</p>
 </section>
 
-<!-- DOKUMENTASI PUBLIK -->
 <section class="card" id="publicGallerySection">
 <h2>Dokumentasi</h2>
 <p class="muted">Foto kegiatan berbagi JUMAT BERKAH.</p>
@@ -181,7 +180,6 @@ Total pembayaran:<br>
 </div>
 </section>
 
-<!-- ADMIN -->
 <section class="card hidden" id="adminAccess">
 <h2>Login Admin</h2>
 <div id="loginBox">
@@ -337,7 +335,11 @@ async function salinRekening(){
  }
 }
 
-/* GALERI PUBLIK: dapat dilihat semua pengunjung */
+function escapeHtml(value){
+ return String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+/* GALERI PUBLIK */
 async function loadPublicGallery(){
  const container=document.getElementById("publicGallery");
  const {data,error}=await db.from("gallery").select("photo_url,caption,created_at").order("created_at",{ascending:false});
@@ -428,10 +430,6 @@ async function loadDashboard(){
  await loadGallery();
 }
 
-function escapeHtml(value){
- return String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-}
-
 /* HAPUS SATU PESANAN */
 async function deleteOrder(id){
  if(!confirm("Yakin ingin menghapus pesanan ini secara permanen?"))return;
@@ -453,6 +451,9 @@ async function deleteAllOrders(mode){
  }else{
   if(!confirm("PERHATIAN! Semua riwayat pesanan, termasuk yang masih MENUNGGU pembayaran, akan dihapus permanen. Lanjutkan?"))return;
  }
+
+ /* Kondisi WHERE agar Supabase tidak menolak penghapusan massal */
+ query=query.not("id","is",null);
 
  const {data,error}=await query.select("id");
  if(error){alert("Gagal menghapus riwayat: "+error.message);return;}
@@ -506,21 +507,19 @@ async function uploadGallery(){
  await loadPublicGallery();
 }
 
-/* GALERI DI DASHBOARD ADMIN */
-async function loadGallery(){
- const {data,error}=await db.from("gallery").select("*").order("created_at",{ascending:false});
- if(error)return;
+/* AMBIL LOKASI FILE FOTO DARI PUBLIC URL SUPABASE */
+function getGalleryStoragePath(photoUrl){
+ const marker="/storage/v1/object/public/"+BUCKET+"/";
+ const position=photoUrl.indexOf(marker);
+ if(position===-1)return null;
 
- document.getElementById("galleryList").innerHTML=(data||[]).map(x=>
- `<div class="order">
- <img src="${escapeHtml(x.photo_url)}" style="width:100%;border-radius:8px">
- <p>${escapeHtml(x.caption||"")}</p>
- </div>`
- ).join("");
+ try{
+  return decodeURIComponent(photoUrl.substring(position+marker.length));
+ }catch(error){
+  return photoUrl.substring(position+marker.length);
+ }
 }
 
-/* TAMPILKAN GALERI SAAT HALAMAN DIBUKA */
-loadPublicGallery();
-</script>
-</body>
-</html>
+/* HAPUS SATU FOTO DOKUMENTASI */
+async function deleteGalleryPhoto(photoUrl){
+ if(!confirm("Yakin i if(!confirm("Yakin i
