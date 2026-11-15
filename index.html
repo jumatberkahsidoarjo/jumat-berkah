@@ -141,9 +141,15 @@ Total pembayaran:<br>
 <div id="donationForm" class="hidden">
 <label>Nama Donatur</label>
 <input id="donationName" placeholder="Masukkan nama">
+
+<label>Nominal Sedekah (Rp)</label>
+<input id="donationAmount" type="number" min="1" step="1000" placeholder="Contoh: 25000">
+
+<p class="muted">Masukkan nominal sedekah yang ingin diberikan. Nominal ini akan tercatat di dashboard admin.</p>
+
 <label>Catatan untuk admin (opsional)</label>
-<textarea id="donationNote" placeholder="Catatan tambahan atau nomor WhatsApp jika ingin menerima dokumentasi penyaluran."></textarea>
-<p class="muted">Nominal sedekah dapat dimasukkan langsung di aplikasi pembayaran QRIS.</p>
+<textarea id="donationNote" placeholder="Catatan tambahan untuk admin."></textarea>
+
 <button class="full" onclick="submitDonation()">Lanjutkan Pembayaran</button>
 </div>
 </section>
@@ -169,7 +175,7 @@ Total pembayaran:<br>
 
 <section class="card">
 <h2>Informasi</h2>
-<p>Terima kasih telah ikut mendukung kegiatan JUMAT BERKAH. Semoga setiap kebaikan menjadi keberkahan bagi kita semua.</p>
+<p>Terima kasih telah ikut mendukung kegiatan JUMAT BERKAH. Semoga setiap kebaikan menjadi keberkahan bagi kita semua. Jika ada keinginan sedekah ditujukan ke masjid, panti asuhan, atau dibagikan ke jalan raya, bisa langsung menulis di catatan admin atau menghubungi admin melalui WhatsApp.</p>
 </section>
 
 <section class="card" id="publicGallerySection">
@@ -297,21 +303,26 @@ async function submitFood(){
 
 async function submitDonation(){
  const name=document.getElementById("donationName").value.trim();
+ const amount=Number(document.getElementById("donationAmount").value);
  const note=document.getElementById("donationNote").value.trim();
 
  if(!name){alert("Nama donatur harus diisi.");return;}
+ if(!Number.isSafeInteger(amount)||amount<1){
+  alert("Masukkan nominal sedekah minimal Rp1.");
+  return;
+ }
 
  const {error}=await db.from("orders").insert({
   donor_name:name,
   order_type:"donation",
   package_qty:null,
-  amount:null,
+  amount:amount,
   note:note,
   status:"pending"
  });
 
  if(error){alert("Sedekah belum berhasil dicatat: "+error.message);return;}
- showPayment("Silakan masukkan nominal sedekah langsung di aplikasi pembayaran QRIS.");
+ showPayment("Sedekah sebesar "+rupiah(amount)+" atas nama "+name+". Silakan lakukan pembayaran sesuai nominal tersebut.");
 }
 
 function showPayment(message){
@@ -452,7 +463,6 @@ async function deleteAllOrders(mode){
   if(!confirm("PERHATIAN! Semua riwayat pesanan, termasuk yang masih MENUNGGU pembayaran, akan dihapus permanen. Lanjutkan?"))return;
  }
 
- /* Kondisi WHERE agar Supabase tidak menolak penghapusan massal */
  query=query.not("id","is",null);
 
  const {data,error}=await query.select("id");
@@ -469,7 +479,10 @@ async function markPaid(id,type){
 
  if(type==="donation"){
   const amount=Number(document.getElementById("amount-"+id).value);
-  if(!amount||amount<1){alert("Masukkan nominal yang benar.");return;}
+  if(!Number.isSafeInteger(amount)||amount<1){
+   alert("Masukkan nominal yang benar.");
+   return;
+  }
   update.amount=amount;
  }
 
