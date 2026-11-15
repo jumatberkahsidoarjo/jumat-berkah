@@ -32,6 +32,27 @@ button:disabled{opacity:.5}
 .hidden{display:none!important}
 .total{background:#f0f6ef;padding:14px;border-radius:10px;margin-top:14px}
 .total strong{color:var(--green);font-size:21px}
+ .bank-info{
+ background:#f5f7f5;
+ border:1px solid #ddd;
+ border-radius:12px;
+ padding:16px;
+ margin:16px 0;
+ color:#000;
+ text-align:center;
+}
+.bank-info strong,
+.bank-info h2,
+.bank-info .bank-name{
+ color:#000 !important;
+}
+.bank-info h2{
+ margin:10px 0;
+ font-size:25px;
+}
+.bank-info .bank-name{
+ font-weight:bold;
+}
 .menu-item{border:1px solid #e6e6e6;border-radius:10px;padding:12px;margin:8px 0}
 .menu-item b{color:var(--green)}
 #adminPanel{display:none}
@@ -137,16 +158,30 @@ Total pembayaran:<br>
 </div>
 </section>
 
+
 <section class="card hidden" id="paymentSection">
 <h2>Pembayaran QRIS</h2>
 <p id="paymentDescription"></p>
+
+<div class="bank-info">
+<strong>TRANSFER BANK BCA</strong>
+<h2>3251889242</h2>
+<div class="bank-name">Atas Nama: MAS SOFIYAN ALI</div>
+</div>
+
+<p style="text-align:center;font-weight:bold">ATAU BAYAR DENGAN QRIS</p>
+
 <img src="qr_ID1026546956610_09.11.26_1794238044_1794238044593.jpeg" alt="QRIS JUMAT BERKAH"
 style="width:100%;max-width:350px;display:block;margin:15px auto"
 onerror="this.style.display='none'">
+
 <p class="muted">Silakan pindai QRIS menggunakan aplikasi pembayaran. Untuk QRIS statis, masukkan nominal pembayaran secara manual sesuai jumlah yang tertera.</p>
+
 <button class="full" onclick="backToForm()">Kembali ke Formulir</button>
+
 <p class="muted">Setelah membayar, admin akan memeriksa transaksi dan memperbarui status pesanan.</p>
 </section>
+
 
 <section class="card">
 <h2>Informasi</h2>
