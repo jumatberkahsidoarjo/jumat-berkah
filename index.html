@@ -32,7 +32,7 @@ button:disabled{opacity:.5}
 .hidden{display:none!important}
 .total{background:#f0f6ef;padding:14px;border-radius:10px;margin-top:14px}
 .total strong{color:var(--green);font-size:21px}
- .bank-info{
+.bank-info{
  background:#f5f7f5;
  border:1px solid #ddd;
  border-radius:12px;
@@ -61,8 +61,6 @@ footer{text-align:center;padding:25px;color:#657268;font-size:13px}
 .footer-access{display:inline-block;background:none;color:inherit;padding:0;border:0;border-radius:0;font-size:13px;font-weight:normal;line-height:1.7;cursor:pointer}
 .footer-access:hover{color:var(--green)}
 .float-wa{position:fixed;right:16px;bottom:16px;border-radius:50px;background:#168b50;color:white;padding:14px 18px;text-decoration:none;font-weight:bold;box-shadow:0 3px 12px #0003}
-
-/* PILIHAN MENU LANGSUNG TERLIHAT */
 .menu-options{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0 16px}
 .menu-choice{border:2px solid #e3e8e3;border-radius:13px;padding:15px 12px;cursor:pointer;background:#fff;transition:.2s;display:flex;flex-direction:column;gap:9px;margin:0}
 .menu-choice input{width:19px;height:19px;margin:0;accent-color:var(--green)}
@@ -130,7 +128,7 @@ onerror="this.style.display='none'">
 <input type="hidden" id="menu" value="nasi">
 
 <label>Jumlah bungkus / porsi</label>
-<input id="qty" type="number" min="1" value="1">
+<input id="qty" type="number" min="1" value="1" step="1" oninput="updateTotal()">
 
 <label>Nominal Donasi (otomatis)</label>
 <input id="foodAmount" readonly>
@@ -158,7 +156,6 @@ Total pembayaran:<br>
 </div>
 </section>
 
-
 <section class="card hidden" id="paymentSection">
 <h2>Pembayaran QRIS</h2>
 <p id="paymentDescription"></p>
@@ -182,13 +179,11 @@ onerror="this.style.display='none'">
 <p class="muted">Setelah membayar, admin akan memeriksa transaksi dan memperbarui status pesanan.</p>
 </section>
 
-
 <section class="card">
 <h2>Informasi</h2>
 <p>Terima kasih telah ikut mendukung kegiatan JUMAT BERKAH. Semoga setiap kebaikan menjadi keberkahan bagi kita semua.</p>
 </section>
 
-<!-- BAGIAN ADMIN: TERSEMBUNYI SAMPAI FOOTER DIKLIK -->
 <section class="card hidden" id="adminAccess">
 <h2>Login Admin</h2>
 <div id="loginBox">
@@ -253,21 +248,21 @@ function showTab(tab){
  document.getElementById("donationTab").classList.toggle("active",tab==="donation");
 }
 
-/* FUNGSI PILIH MENU LANGSUNG */
 function chooseMenu(value){
  document.getElementById("menu").value=value;
-
  document.getElementById("choiceNasi").classList.toggle("selected",value==="nasi");
  document.getElementById("choiceAyam").classList.toggle("selected",value==="ayam");
-
  updateTotal();
 }
 
+/* DIPERBAIKI: kolom jumlah tidak lagi dipaksa kembali ke angka 1 */
 function updateTotal(){
  const menu=document.getElementById("menu").value;
- const qty=Math.max(1,parseInt(document.getElementById("qty").value)||1);
- const total=prices[menu]*qty;
- document.getElementById("qty").value=qty;
+ const qtyInput=document.getElementById("qty");
+ const qty=parseInt(qtyInput.value,10);
+ const jumlah=Number.isFinite(qty)&&qty>0?qty:0;
+ const total=prices[menu]*jumlah;
+
  document.getElementById("foodAmount").value=rupiah(total);
  document.getElementById("foodTotal").textContent=rupiah(total);
 }
@@ -278,11 +273,11 @@ updateTotal();
 async function submitFood(){
  const name=document.getElementById("foodName").value.trim();
  const menu=document.getElementById("menu").value;
- const qty=parseInt(document.getElementById("qty").value);
+ const qty=parseInt(document.getElementById("qty").value,10);
  const note=document.getElementById("foodNote").value.trim();
 
  if(!name){alert("Nama donatur harus diisi.");return;}
- if(!qty||qty<1){alert("Jumlah minimal 1.");return;}
+ if(!Number.isInteger(qty)||qty<1){alert("Jumlah minimal 1.");return;}
 
  const amount=prices[menu]*qty;
  const fullNote="Menu: "+menuNames[menu]+(note?" | Catatan: "+note:"");
