@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -36,6 +37,8 @@ button:disabled{opacity:.5}
 #adminPanel{display:none}
 .order{border:1px solid #ddd;padding:12px;border-radius:10px;margin:10px 0}
 footer{text-align:center;padding:25px;color:#657268;font-size:13px}
+.footer-access{display:inline-block;background:none;color:inherit;padding:0;border:0;border-radius:0;font-size:13px;font-weight:normal;line-height:1.7;cursor:pointer}
+.footer-access:hover{color:var(--green)}
 .float-wa{position:fixed;right:16px;bottom:16px;border-radius:50px;background:#168b50;color:white;padding:14px 18px;text-decoration:none;font-weight:bold;box-shadow:0 3px 12px #0003}
 </style>
 </head>
@@ -130,8 +133,9 @@ onerror="this.style.display='none'">
 <p>Terima kasih telah ikut mendukung kegiatan JUMAT BERKAH. Semoga setiap kebaikan menjadi keberkahan bagi kita semua.</p>
 </section>
 
-<section class="card">
-<h2>Admin</h2>
+<!-- BAGIAN ADMIN: TERSEMBUNYI SAMPAI FOOTER DIKLIK -->
+<section class="card hidden" id="adminAccess">
+<h2>Login Admin</h2>
 <div id="loginBox">
 <label>Email Admin</label>
 <input id="adminEmail" type="email" placeholder="Email admin">
@@ -139,6 +143,7 @@ onerror="this.style.display='none'">
 <input id="adminPassword" type="password" placeholder="Password admin">
 <button class="full" onclick="adminLogin()">Masuk Dashboard</button>
 </div>
+
 <div id="adminPanel">
 <h2>Dashboard Pesanan</h2>
 <div id="stats"></div>
@@ -157,14 +162,15 @@ onerror="this.style.display='none'">
 </main>
 
 <footer>
+<button class="footer-access" onclick="toggleAdminAccess()" aria-label="Akses admin">
 JUMAT BERKAH • Sidoarjo<br>
 Berbagi Makanan, Menebar Kebaikan
+</button>
 </footer>
 
-<a class="float-wa" href="https://wa.me/6281358164998" target="_blank">WhatsApp Admin</a>
+<a class="float-wa" href="https://wa.me/6285604909323" target="_blank">WhatsApp Admin</a>
 
 <script>
-// GANTI DUA NILAI DI BAWAH INI DENGAN DATA PROJECT SUPABASE MILIKMU
 const SUPABASE_URL = "https://lhgqssxglazasgpfbjfd.supabase.co";
 const SUPABASE_KEY = "sb_publishable_QDkk74_lWtUM5iN9RN5v2g_HTgekfs2";
 
@@ -173,10 +179,16 @@ const BUCKET = "dokumentasi-jumat-berkah";
 const prices = {nasi:5000,ayam:15000};
 const menuNames = {nasi:"Nasi Bungkus",ayam:"Ayam Kocak"};
 
-let currentOrder = null;
-
 function rupiah(n){
  return new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n||0);
+}
+
+function toggleAdminAccess(){
+ const panel=document.getElementById("adminAccess");
+ panel.classList.toggle("hidden");
+ if(!panel.classList.contains("hidden")){
+  panel.scrollIntoView({behavior:"smooth",block:"center"});
+ }
 }
 
 function showTab(tab){
@@ -218,7 +230,7 @@ async function submitFood(){
   amount:amount,
   note:fullNote,
   status:"pending"
- }).select().single();
+ });
 
  if(error){alert("Pesanan belum berhasil disimpan: "+error.message);return;}
 
@@ -238,10 +250,10 @@ async function submitDonation(){
   amount:null,
   note:note,
   status:"pending"
- }).select().single();
+ });
 
  if(error){alert("Sedekah belum berhasil dicatat: "+error.message);return;}
- 
+
  showPayment("Silakan masukkan nominal sedekah langsung di aplikasi pembayaran QRIS.");
 }
 
@@ -282,6 +294,7 @@ async function adminLogout(){
  await db.auth.signOut();
  document.getElementById("adminPanel").style.display="none";
  document.getElementById("loginBox").classList.remove("hidden");
+ document.getElementById("adminPassword").value="";
 }
 
 async function loadDashboard(){
@@ -368,4 +381,4 @@ async function loadGallery(){
 }
 </script>
 </body>
-  </html>
+</html>
