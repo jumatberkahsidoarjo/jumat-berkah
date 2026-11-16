@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -52,7 +53,7 @@ details.admin-section[open]>summary:after{content:"−"}
 .stat{background:#f0f6ef;border-radius:10px;padding:12px}.stat b{display:block;color:var(--green);font-size:18px;margin-top:5px;overflow-wrap:anywhere}.stat span{font-size:12px;color:var(--muted)}
 .report-total{background:#eff7ef;border:1px solid #dcebdd;border-radius:14px;padding:16px;margin:12px 0}
 .report-total .amount{font-size:27px;font-weight:bold;color:var(--green);margin:5px 0}
-.report-strip{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 12px; -webkit-overflow-scrolling:touch}
+.report-strip{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 12px;-webkit-overflow-scrolling:touch}
 .report-card{flex:0 0 85%;max-width:340px;border:1px solid #e1e8e1;border-radius:13px;padding:14px;scroll-snap-align:start;background:#fff}
 .report-card h3{margin:0 0 8px;color:var(--dark);font-size:16px}.report-card .amount{font-size:22px;font-weight:bold;color:var(--green);margin:8px 0}
 .report-nav{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px}.report-nav button{padding:8px 12px;font-size:13px}
@@ -127,7 +128,7 @@ details.admin-section[open]>summary:after{content:"−"}
 <div class="report-total">
 <span class="muted">Total donasi terkumpul sepanjang program</span>
 <div class="amount" id="lifetimeTotal">Memuat...</div>
-<div class="muted" id="lifetimeInfo">Dihitung dari seluruh pesanan berstatus lunas.</div>
+<div class="muted" id="lifetimeInfo">Akumulasi seluruh pesanan berstatus lunas sejak program berjalan.</div>
 </div>
 <h3 style="color:var(--dark);font-size:16px;margin:18px 0 8px">Riwayat Laporan Jumat</h3>
 <p class="muted">Geser ke kiri atau kanan untuk melihat laporan dari minggu-minggu sebelumnya.</p>
@@ -174,14 +175,18 @@ details.admin-section[open]>summary:after{content:"−"}
 <details class="admin-section">
 <summary>Tambah / Edit Laporan Jumat</summary>
 <div class="admin-content">
-<p class="muted">Pilih tanggal penyaluran. Sistem menghitung total dari pesanan yang sudah lunas pada tanggal tersebut. Laporan tersimpan dan tidak menyediakan tombol hapus.</p>
+<p class="muted">Pilih tanggal Jumat pada kalender. Sistem otomatis menghitung seluruh pesanan lunas selama tujuh hari sebelumnya. Laporan disimpan sebagai draft dan baru tampil di halaman utama setelah dikonfirmasi.</p>
 <input type="hidden" id="reportId">
-<label>Tanggal Jumat / penyaluran</label><input type="date" id="reportDate">
-<div class="total"><span class="muted">Total donasi lunas pada tanggal tersebut</span><br><strong id="reportAmountPreview">Rp0</strong><p class="muted" id="reportBreakdownPreview">Nasi 0 porsi · Ayam 0 porsi · 0 pesanan</p></div>
+<label>Tanggal Jumat laporan</label><input type="date" id="reportDate" onchange="calculateReportPreview()">
+<div class="total">
+<span class="muted" id="reportPeriodPreview">Periode perhitungan: belum dipilih</span><br>
+<strong id="reportAmountPreview">Rp0</strong>
+<p class="muted" id="reportBreakdownPreview">Nasi 0 porsi · Ayam 0 porsi · 0 pesanan</p>
+</div>
 <button class="full" onclick="calculateReportPreview()">Hitung ulang dari pesanan lunas</button>
 <label>Catatan laporan (opsional)</label><textarea id="reportNote" placeholder="Contoh: Penyaluran di sekitar masjid dan kepada masyarakat yang membutuhkan."></textarea>
-<div class="admin-row"><button class="full" onclick="saveReport()">Simpan Laporan</button><button class="full" style="background:#68766d" onclick="resetReportForm()">Bersihkan Form</button></div>
-<p class="muted">Laporan lama bisa diedit, tetapi tidak bisa dihapus. Total keseluruhan tetap dihitung dari seluruh pesanan lunas.</p>
+<div class="admin-row"><button class="full" onclick="saveReport()">Simpan sebagai Draft</button><button class="full" style="background:#68766d" onclick="resetReportForm()">Bersihkan Form</button></div>
+<p class="muted">Laporan yang sudah disimpan dapat diedit. Setiap perubahan perlu dikonfirmasi ulang sebelum tampil di halaman utama.</p>
 </div>
 </details>
 
@@ -227,7 +232,8 @@ document.getElementById("qty").addEventListener("input",updateTotal);updateTotal
 
 async function submitFood(){
  const name=document.getElementById("foodName").value.trim(),menu=document.getElementById("menu").value,qty=parseInt(document.getElementById("qty").value,10),note=document.getElementById("foodNote").value.trim();
- if(!name){alert("Nama donatur harus diisi.");return}if(!Number.isInteger(qty)||qty<1){alert("Jumlah minimal 1.");return}
+ if(!name){alert("Nama donatur harus diisi.");return}
+ if(!Number.isInteger(qty)||qty<1){alert("Jumlah minimal 1.");return}
  const amount=prices[menu]*qty,fullNote="Menu: "+menuNames[menu]+(note?" | Catatan: "+note:"");
  const {error}=await db.from("orders").insert({donor_name:name,order_type:"food",package_qty:qty,amount,note:fullNote,status:"pending"});
  if(error){alert("Pesanan belum berhasil disimpan: "+error.message);return}
@@ -235,7 +241,8 @@ async function submitFood(){
 }
 async function submitDonation(){
  const name=document.getElementById("donationName").value.trim(),amount=Number(document.getElementById("donationAmount").value),note=document.getElementById("donationNote").value.trim();
- if(!name){alert("Nama donatur harus diisi.");return}if(!Number.isSafeInteger(amount)||amount<1){alert("Masukkan nominal sedekah minimal Rp1.");return}
+ if(!name){alert("Nama donatur harus diisi.");return}
+ if(!Number.isSafeInteger(amount)||amount<1){alert("Masukkan nominal sedekah minimal Rp1.");return}
  const {error}=await db.from("orders").insert({donor_name:name,order_type:"donation",package_qty:null,amount,note,status:"pending"});
  if(error){alert("Sedekah belum berhasil dicatat: "+error.message);return}
  showPayment("Sedekah sebesar "+rupiah(amount)+" atas nama "+name+". Silakan lakukan pembayaran sesuai nominal tersebut.");
@@ -244,11 +251,38 @@ function showPayment(message){document.getElementById("donationSection").classLi
 function backToForm(){document.getElementById("paymentSection").classList.add("hidden");document.getElementById("donationSection").classList.remove("hidden")}
 async function salinRekening(){try{await navigator.clipboard.writeText("3251889242");document.getElementById("pesanSalin").textContent="Nomor rekening berhasil disalin!"}catch(e){document.getElementById("pesanSalin").textContent="Gagal menyalin. Silakan salin nomor secara manual."}}
 
-/* Tanggal memakai zona waktu lokal perangkat admin. paid_at adalah waktu konfirmasi lunas. */
-function localDayRange(dateString){
+/* Fungsi tanggal lokal dan periode tujuh hari sebelum tanggal Jumat laporan */
+function dateToString(date){
+ const y=date.getFullYear(),m=String(date.getMonth()+1).padStart(2,"0"),d=String(date.getDate()).padStart(2,"0");
+ return `${y}-${m}-${d}`;
+}
+function addDays(dateString,days){
  const [y,m,d]=dateString.split("-").map(Number);
- const start=new Date(y,m-1,d,0,0,0,0),end=new Date(y,m-1,d+1,0,0,0,0);
- return {start:start.toISOString(),end:end.toISOString()};
+ const date=new Date(y,m-1,d,12,0,0);
+ date.setDate(date.getDate()+days);
+ return dateToString(date);
+}
+function formatDate(dateString){
+ return new Date(dateString+"T12:00:00").toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric"});
+}
+function getWeekPeriod(reportDate){
+ if(!reportDate)throw new Error("Pilih tanggal Jumat terlebih dahulu.");
+ const [y,m,d]=reportDate.split("-").map(Number);
+ const friday=new Date(y,m-1,d,12,0,0);
+ if(friday.getDay()!==5)throw new Error("Tanggal laporan harus hari Jumat.");
+ const weekStart=addDays(reportDate,-7);
+ const weekEnd=addDays(reportDate,-1);
+ const [sy,sm,sd]=weekStart.split("-").map(Number);
+ const [ey,em,ed]=reportDate.split("-").map(Number);
+ const start=new Date(sy,sm-1,sd,0,0,0,0);
+ const endExclusive=new Date(ey,em-1,ed,0,0,0,0);
+ return {
+  reportDate,
+  weekStart,
+  weekEnd,
+  startISO:start.toISOString(),
+  endExclusive:endExclusive.toISOString()
+ };
 }
 function orderMenu(x){
  if(x.order_type!=="food")return null;
@@ -256,59 +290,129 @@ function orderMenu(x){
 }
 function summarizeOrders(rows){
  let total=0,nasi=0,ayam=0,orders=0;
- rows.forEach(x=>{if(x.status!=="paid")return;total+=Number(x.amount)||0;orders++;const m=orderMenu(x);if(m==="nasi")nasi+=Number(x.package_qty)||0;if(m==="ayam")ayam+=Number(x.package_qty)||0});
+ rows.forEach(x=>{
+  if(x.status!=="paid")return;
+  total+=Number(x.amount)||0;
+  orders++;
+  const m=orderMenu(x);
+  if(m==="nasi")nasi+=Number(x.package_qty)||0;
+  if(m==="ayam")ayam+=Number(x.package_qty)||0;
+ });
  return {total,nasi,ayam,orders};
 }
-async function getPaidOrdersForDate(dateString){
- const {start,end}=localDayRange(dateString);
- const {data,error}=await db.from("orders").select("id,amount,order_type,package_qty,note,status,created_at,paid_at").eq("status","paid").gte("paid_at",start).lt("paid_at",end);
+async function getPaidOrdersForWeek(reportDate){
+ const period=getWeekPeriod(reportDate);
+ const {data,error}=await db.from("orders")
+  .select("id,amount,order_type,package_qty,note,status,created_at,paid_at")
+  .eq("status","paid")
+  .gte("paid_at",period.startISO)
+  .lt("paid_at",period.endExclusive);
  if(error)throw error;
  return data||[];
 }
+
+/* Perbarui laporan terkait jika ada pembayaran baru atau riwayat lunas dihapus */
+async function refreshReportsForPaidDate(paidDate){
+ if(!paidDate)return;
+ const {data:reports,error}=await db.from("donation_reports").select("*");
+ if(error)throw error;
+ for(const report of reports||[]){
+  let period;
+  try{period=getWeekPeriod(report.report_date)}catch(e){continue}
+  if(paidDate<period.weekStart||paidDate>period.weekEnd)continue;
+  const summary=summarizeOrders(await getPaidOrdersForWeek(report.report_date));
+  const {error:updateError}=await db.from("donation_reports").update({
+   week_start:period.weekStart,
+   week_end:period.weekEnd,
+   donation_total:summary.total,
+   nasi_qty:summary.nasi,
+   ayam_qty:summary.ayam,
+   order_count:summary.orders,
+   approved:false
+  }).eq("id",report.id);
+  if(updateError)throw updateError;
+ }
+}
+
 async function loadPublicTransparency(){
  const totalEl=document.getElementById("lifetimeTotal"),info=document.getElementById("lifetimeInfo");
  const {data,error}=await db.rpc("get_public_donation_total");
- if(error){totalEl.textContent="Belum dapat dimuat";info.textContent="Silakan coba beberapa saat lagi.";return}
- const total=Number(data)||0;
- totalEl.textContent=rupiah(total);info.textContent="Akumulasi seluruh pesanan berstatus lunas sejak program berjalan.";
- const {data:reports,error:reportError}=await db.from("donation_reports").select("*").order("report_date",{ascending:false});
+ if(error){
+  totalEl.textContent="Belum dapat dimuat";
+  info.textContent="Silakan coba beberapa saat lagi.";
+  return;
+ }
+ totalEl.textContent=rupiah(Number(data)||0);
+ info.textContent="Akumulasi seluruh pesanan berstatus lunas sejak program berjalan.";
+
+ const {data:reports,error:reportError}=await db.from("donation_reports")
+  .select("*").eq("approved",true).order("report_date",{ascending:false});
  const box=document.getElementById("publicReports");
- if(reportError){box.innerHTML='<p class="muted">Riwayat laporan belum dapat dimuat. Pastikan tabel laporan sudah dibuat.</p>';return}
+ if(reportError){
+  box.innerHTML='<p class="muted">Riwayat laporan belum dapat dimuat. Pastikan pengaturan tabel laporan sudah benar.</p>';
+  return;
+ }
  cachedReports=reports||[];
- box.innerHTML=cachedReports.length?cachedReports.map(r=>`
- <article class="report-card">
- <h3>Jumat, ${escapeHtml(new Date(r.report_date+"T12:00:00").toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric"}))}</h3>
- <div class="amount">${rupiah(r.donation_total)}</div>
- <div class="muted">Donasi lunas pada tanggal penyaluran</div>
- <hr style="border:0;border-top:1px solid #e7ece7;margin:12px 0">
- <div>🍚 Nasi bungkus: <b>${Number(r.nasi_qty)||0} porsi</b></div>
- <div>🍗 Ayam kocak: <b>${Number(r.ayam_qty)||0} porsi</b></div>
- <div>📦 Jumlah pesanan: <b>${Number(r.order_count)||0}</b></div>
- ${r.note?`<p class="muted">${escapeHtml(r.note)}</p>`:""}
- </article>`).join(""):'<p class="muted">Laporan penyaluran belum tersedia.</p>';
+ box.innerHTML=cachedReports.length?cachedReports.map(r=>{
+  let periodText="";
+  try{
+   const p=getWeekPeriod(r.report_date);
+   periodText=`Donasi lunas selama ${formatDate(p.weekStart)} – ${formatDate(p.weekEnd)}`;
+  }catch(e){
+   periodText="Donasi lunas selama periode laporan";
+  }
+  return `
+  <article class="report-card">
+   <h3>Jumat, ${escapeHtml(formatDate(r.report_date))}</h3>
+   <div class="amount">${rupiah(r.donation_total)}</div>
+   <div class="muted">${escapeHtml(periodText)}</div>
+   <hr style="border:0;border-top:1px solid #e7ece7;margin:12px 0">
+   <div>🍚 Nasi bungkus: <b>${Number(r.nasi_qty)||0} porsi</b></div>
+   <div>🍗 Ayam kocak: <b>${Number(r.ayam_qty)||0} porsi</b></div>
+   <div>📦 Jumlah pesanan: <b>${Number(r.order_count)||0}</b></div>
+   ${r.note?`<p class="muted">${escapeHtml(r.note)}</p>`:""}
+  </article>`;
+ }).join(""):'<p class="muted">Laporan penyaluran belum tersedia.</p>';
 }
 function scrollReports(dir){document.getElementById("publicReports").scrollBy({left:dir*300,behavior:"smooth"})}
 
-/* GALERI: 10 foto terbaru di beranda, semua foto di halaman khusus */
+/* GALERI */
 let allPhotos=[];
 async function fetchGallery(){
  const {data,error}=await db.from("gallery").select("photo_url,caption,created_at").order("created_at",{ascending:false});
- if(error)throw error;allPhotos=data||[];return allPhotos;
+ if(error)throw error;
+ allPhotos=data||[];
+ return allPhotos;
 }
 function photoCard(x,i){return `<div class="gallery-photo"><img src="${escapeHtml(x.photo_url)}" alt="Dokumentasi JUMAT BERKAH" loading="lazy" onclick="openLightbox(${i})"><div class="gallery-caption">${escapeHtml(x.caption||"Kegiatan JUMAT BERKAH")}</div></div>`}
 async function loadPublicGallery(){
  const home=document.getElementById("publicGallery"),more=document.getElementById("moreGalleryButton");
- try{await fetchGallery();home.innerHTML=allPhotos.length?allPhotos.slice(0,10).map((x,i)=>photoCard(x,i)).join(""):'<p class="muted">Belum ada foto dokumentasi yang diunggah.</p>';more.classList.toggle("hidden",allPhotos.length<=10)}
- catch(e){home.innerHTML='<p class="muted">Dokumentasi belum dapat ditampilkan.</p>'}
+ try{
+  await fetchGallery();
+  home.innerHTML=allPhotos.length?allPhotos.slice(0,10).map((x,i)=>photoCard(x,i)).join(""):'<p class="muted">Belum ada foto dokumentasi yang diunggah.</p>';
+  more.classList.toggle("hidden",allPhotos.length<=10);
+ }catch(e){home.innerHTML='<p class="muted">Dokumentasi belum dapat ditampilkan.</p>'}
 }
 function showAllGallery(){
- document.getElementById("homePage").classList.add("hidden");document.getElementById("allGalleryPage").classList.remove("hidden");
+ document.getElementById("homePage").classList.add("hidden");
+ document.getElementById("allGalleryPage").classList.remove("hidden");
  document.getElementById("allGalleryGrid").innerHTML=allPhotos.map((x,i)=>photoCard(x,i)).join("");
  window.scrollTo({top:0,behavior:"smooth"});
 }
-function showHome(){document.getElementById("allGalleryPage").classList.add("hidden");document.getElementById("homePage").classList.remove("hidden");window.scrollTo({top:document.getElementById("publicGallerySection").offsetTop-10,behavior:"smooth"})}
-function openLightbox(i){const x=allPhotos[i];if(!x)return;document.getElementById("lightboxImage").src=x.photo_url;document.getElementById("lightbox").classList.remove("hidden")}
-function closeLightbox(){document.getElementById("lightbox").classList.add("hidden");document.getElementById("lightboxImage").src=""}
+function showHome(){
+ document.getElementById("allGalleryPage").classList.add("hidden");
+ document.getElementById("homePage").classList.remove("hidden");
+ window.scrollTo({top:document.getElementById("publicGallerySection").offsetTop-10,behavior:"smooth"});
+}
+function openLightbox(i){
+ const x=allPhotos[i];if(!x)return;
+ document.getElementById("lightboxImage").src=x.photo_url;
+ document.getElementById("lightbox").classList.remove("hidden");
+}
+function closeLightbox(){
+ document.getElementById("lightbox").classList.add("hidden");
+ document.getElementById("lightboxImage").src="";
+}
 
 /* LOGIN ADMIN */
 async function adminLogin(){
@@ -317,9 +421,16 @@ async function adminLogin(){
  if(error){alert("Login gagal. Periksa email dan password.");return}
  const {data:admin,error:adminError}=await db.from("admin_users").select("user_id").eq("user_id",data.user.id).maybeSingle();
  if(adminError||!admin){await db.auth.signOut();alert("Akun ini tidak terdaftar sebagai admin.");return}
- document.getElementById("loginBox").classList.add("hidden");document.getElementById("adminPanel").style.display="block";await loadDashboard();
+ document.getElementById("loginBox").classList.add("hidden");
+ document.getElementById("adminPanel").style.display="block";
+ await loadDashboard();
 }
-async function adminLogout(){await db.auth.signOut();document.getElementById("adminPanel").style.display="none";document.getElementById("loginBox").classList.remove("hidden");document.getElementById("adminPassword").value=""}
+async function adminLogout(){
+ await db.auth.signOut();
+ document.getElementById("adminPanel").style.display="none";
+ document.getElementById("loginBox").classList.remove("hidden");
+ document.getElementById("adminPassword").value="";
+}
 
 /* DASHBOARD RINGKAS */
 async function loadDashboard(){
@@ -332,7 +443,9 @@ async function loadDashboard(){
  <div class="stat"><span>Donasi menunggu</span><b>${rupiah(wait)}</b></div>
  <div class="stat"><span>Pesanan lunas</span><b>${paid.length}</b></div>
  <div class="stat"><span>Pesanan menunggu</span><b>${pending.length}</b></div>`;
- await loadOrders();await loadAdminReports();await loadGallery();
+ await loadOrders();
+ await loadAdminReports();
+ await loadGallery();
 }
 async function loadOrders(){
  const filter=document.getElementById("orderFilter")?.value||"all";
@@ -347,63 +460,177 @@ async function loadOrders(){
   <b>${escapeHtml(x.donor_name)}</b> · ${x.status==="paid"?'<span style="color:#176b45">LUNAS</span>':'<span style="color:#a15c00">MENUNGGU</span>'}<br>
   Jenis: ${x.order_type==="food"?"Pesan makanan":"Hanya sedekah"} · Jumlah: ${x.package_qty||"-"}<br>
   Nominal: ${rupiah(x.amount)}<br>Catatan: ${escapeHtml(note)}
-  ${x.status==="pending"?`<label>Nominal aktual untuk konfirmasi</label><input type="number" min="1" id="amount-${escapeHtml(x.id)}" value="${x.amount||""}" placeholder="Nominal yang diterima"><button class="full" onclick="markPaid('${escapeHtml(x.id)}','${escapeHtml(x.order_type)}')">Tandai Sudah Dibayar</button><button class="full outline-danger" onclick="deletePendingOrder('${escapeHtml(x.id)}')">Hapus pesanan menunggu</button>`:'<p class="muted">Pesanan lunas dipertahankan sebagai arsip donasi.</p>'}
+  ${x.status==="pending"?`
+   <label>Nominal aktual untuk konfirmasi</label>
+   <input type="number" min="1" id="amount-${escapeHtml(x.id)}" value="${x.amount||""}" placeholder="Nominal yang diterima">
+   <button class="full" onclick="markPaid('${escapeHtml(x.id)}','${escapeHtml(x.order_type)}')">Tandai Sudah Dibayar</button>
+   <button class="full outline-danger" onclick="deletePendingOrder('${escapeHtml(x.id)}')">Hapus pesanan menunggu</button>
+  `:`
+   <p class="muted">Pesanan ini sudah lunas.</p>
+   <button class="full outline-danger" onclick="deletePaidOrder('${escapeHtml(x.id)}')">Hapus Riwayat Pembayaran</button>
+  `}
   </div>`;
  }).join(""):'<p class="muted">Tidak ada pesanan pada filter ini.</p>';
 }
 async function deletePendingOrder(id){
- if(!confirm("Hapus pesanan yang masih menunggu pembayaran ini? Pesanan lunas tidak bisa dihapus."))return;
+ if(!confirm("Hapus pesanan yang masih menunggu pembayaran ini?"))return;
  const {error}=await db.from("orders").delete().eq("id",id).eq("status","pending");
  if(error){alert("Gagal menghapus pesanan: "+error.message);return}
  await loadDashboard();
 }
+async function deletePaidOrder(id){
+ if(!confirm("Yakin ingin menghapus riwayat pembayaran lunas ini?"))return;
+ if(!confirm("Perhatian: total donasi keseluruhan akan berkurang. Laporan minggu terkait juga akan kembali menjadi draft. Lanjutkan?"))return;
+
+ const {data:order,error:readError}=await db.from("orders")
+  .select("id,paid_at,status").eq("id",id).eq("status","paid").single();
+ if(readError||!order){alert("Data pembayaran tidak ditemukan: "+(readError?.message||""));return}
+
+ const {error}=await db.from("orders").delete().eq("id",id).eq("status","paid");
+ if(error){alert("Gagal menghapus riwayat pembayaran: "+error.message);return}
+
+ try{
+  if(order.paid_at){
+   const paidDate=dateToString(new Date(order.paid_at));
+   await refreshReportsForPaidDate(paidDate);
+  }
+ }catch(e){
+  alert("Riwayat pembayaran terhapus, tetapi pembaruan laporan perlu diperiksa: "+e.message);
+ }
+
+ alert("Riwayat pembayaran berhasil dihapus. Total donasi akan menyesuaikan otomatis.");
+ await loadDashboard();
+ await loadPublicTransparency();
+}
 async function markPaid(id,type){
  const update={status:"paid",paid_at:new Date().toISOString()};
- if(type==="donation"){const amount=Number(document.getElementById("amount-"+id).value);if(!Number.isSafeInteger(amount)||amount<1){alert("Masukkan nominal yang benar.");return}update.amount=amount}
+ if(type==="donation"){
+  const amount=Number(document.getElementById("amount-"+id).value);
+  if(!Number.isSafeInteger(amount)||amount<1){alert("Masukkan nominal yang benar.");return}
+  update.amount=amount;
+ }
  const {error}=await db.from("orders").update(update).eq("id",id).eq("status","pending");
  if(error){alert("Gagal memperbarui: "+error.message);return}
- alert("Status pesanan berhasil diperbarui. Total donasi akan ikut diperbarui.");await loadDashboard();await loadPublicTransparency();
+
+ try{
+  const paidDate=dateToString(new Date(update.paid_at));
+  await refreshReportsForPaidDate(paidDate);
+ }catch(e){
+  alert("Pembayaran berhasil dikonfirmasi, tetapi pembaruan laporan perlu diperiksa: "+e.message);
+ }
+
+ alert("Status pesanan berhasil diperbarui. Total donasi akan ikut diperbarui.");
+ await loadDashboard();
+ await loadPublicTransparency();
 }
 
-/* LAPORAN: snapshot per tanggal penyaluran, dapat diedit, tanpa fungsi hapus */
+/* LAPORAN JUMAT: hitung tujuh hari sebelum tanggal Jumat yang dipilih */
 async function calculateReportPreview(){
- const date=document.getElementById("reportDate").value;if(!date){alert("Pilih tanggal terlebih dahulu.");return}
- try{const rows=await getPaidOrdersForDate(date),s=summarizeOrders(rows);
- document.getElementById("reportAmountPreview").textContent=rupiah(s.total);
- document.getElementById("reportBreakdownPreview").textContent=`Nasi ${s.nasi} porsi · Ayam ${s.ayam} porsi · ${s.orders} pesanan`;
- }catch(e){alert("Gagal menghitung pesanan lunas. Pastikan kolom paid_at sudah dibuat di Supabase. Detail: "+e.message)}
+ const date=document.getElementById("reportDate").value;
+ if(!date){alert("Pilih tanggal Jumat terlebih dahulu.");return}
+ try{
+  const period=getWeekPeriod(date);
+  const rows=await getPaidOrdersForWeek(date);
+  const s=summarizeOrders(rows);
+  document.getElementById("reportPeriodPreview").textContent=`Periode perhitungan: ${formatDate(period.weekStart)} – ${formatDate(period.weekEnd)}`;
+  document.getElementById("reportAmountPreview").textContent=rupiah(s.total);
+  document.getElementById("reportBreakdownPreview").textContent=`Nasi ${s.nasi} porsi · Ayam ${s.ayam} porsi · ${s.orders} pesanan`;
+ }catch(e){
+  alert("Gagal menghitung laporan: "+e.message);
+ }
 }
-function resetReportForm(){document.getElementById("reportId").value="";document.getElementById("reportDate").value="";document.getElementById("reportNote").value="";document.getElementById("reportAmountPreview").textContent="Rp0";document.getElementById("reportBreakdownPreview").textContent="Nasi 0 porsi · Ayam 0 porsi · 0 pesanan"}
+function resetReportForm(){
+ document.getElementById("reportId").value="";
+ document.getElementById("reportDate").value="";
+ document.getElementById("reportNote").value="";
+ document.getElementById("reportPeriodPreview").textContent="Periode perhitungan: belum dipilih";
+ document.getElementById("reportAmountPreview").textContent="Rp0";
+ document.getElementById("reportBreakdownPreview").textContent="Nasi 0 porsi · Ayam 0 porsi · 0 pesanan";
+}
 async function saveReport(){
- const date=document.getElementById("reportDate").value,note=document.getElementById("reportNote").value.trim(),id=document.getElementById("reportId").value;
- if(!date){alert("Pilih tanggal laporan.");return}
- let s;
- try{s=summarizeOrders(await getPaidOrdersForDate(date))}catch(e){alert("Tidak bisa menghitung pesanan lunas: "+e.message);return}
- if(s.orders===0&&!confirm("Belum ada pesanan lunas pada tanggal ini. Tetap simpan laporan bernilai Rp0?"))return;
- const payload={report_date:date,donation_total:s.total,nasi_qty:s.nasi,ayam_qty:s.ayam,order_count:s.orders,note};
+ const date=document.getElementById("reportDate").value;
+ const note=document.getElementById("reportNote").value.trim();
+ const id=document.getElementById("reportId").value;
+ if(!date){alert("Pilih tanggal Jumat laporan.");return}
+
+ let period,s;
+ try{
+  period=getWeekPeriod(date);
+  s=summarizeOrders(await getPaidOrdersForWeek(date));
+ }catch(e){
+  alert("Gagal menghitung laporan: "+e.message);
+  return;
+ }
+ if(s.orders===0&&!confirm("Belum ada pesanan lunas pada periode ini. Tetap simpan laporan bernilai Rp0 sebagai draft?"))return;
+
+ const payload={
+  report_date:date,
+  week_start:period.weekStart,
+  week_end:period.weekEnd,
+  donation_total:s.total,
+  nasi_qty:s.nasi,
+  ayam_qty:s.ayam,
+  order_count:s.orders,
+  note,
+  approved:false
+ };
  let result;
- if(id)result=await db.from("donation_reports").update(payload).eq("id",id);
- else result=await db.from("donation_reports").upsert(payload,{onConflict:"report_date"});
+ if(id){
+  result=await db.from("donation_reports").update(payload).eq("id",id);
+ }else{
+  result=await db.from("donation_reports").upsert(payload,{onConflict:"report_date"});
+ }
  if(result.error){alert("Gagal menyimpan laporan: "+result.error.message);return}
- alert("Laporan berhasil disimpan. Laporan tidak menyediakan fitur hapus.");
- resetReportForm();await loadAdminReports();await loadPublicTransparency();
+
+ alert("Laporan berhasil disimpan sebagai draft. Laporan belum tampil di halaman utama sampai dikonfirmasi.");
+ resetReportForm();
+ await loadAdminReports();
+ await loadPublicTransparency();
 }
 async function loadAdminReports(){
  const el=document.getElementById("adminReports");
  const {data,error}=await db.from("donation_reports").select("*").order("report_date",{ascending:false});
  if(error){el.innerHTML='<p class="muted">Gagal memuat laporan. Pastikan tabel donation_reports sudah dibuat.</p>';return}
- el.innerHTML=(data||[]).length?(data||[]).map(r=>`
- <div class="order">
- <b>${escapeHtml(r.report_date)}</b><br>${rupiah(r.donation_total)} · Nasi ${Number(r.nasi_qty)||0} · Ayam ${Number(r.ayam_qty)||0}
- <button class="full small-button" onclick="editReport('${escapeHtml(r.id)}')">Edit laporan</button>
- </div>`).join(""):'<p class="muted">Belum ada laporan tersimpan.</p>';
+
+ el.innerHTML=(data||[]).length?(data||[]).map(r=>{
+  let periodText="Periode belum ditentukan";
+  try{
+   const p=getWeekPeriod(r.report_date);
+   periodText=`${formatDate(p.weekStart)} – ${formatDate(p.weekEnd)}`;
+  }catch(e){}
+  return `
+  <div class="order">
+   <b>Jumat, ${escapeHtml(formatDate(r.report_date))}</b><br>
+   <span class="muted">Periode: ${escapeHtml(periodText)}</span><br>
+   ${rupiah(r.donation_total)} · Nasi ${Number(r.nasi_qty)||0} · Ayam ${Number(r.ayam_qty)||0} · ${Number(r.order_count)||0} pesanan<br>
+   <b style="color:${r.approved?"#176b45":"#a15c00"}">${r.approved?"Sudah dikonfirmasi":"Draft / belum dikonfirmasi"}</b>
+   <button class="full small-button" onclick="editReport('${escapeHtml(r.id)}')">Edit laporan</button>
+   ${!r.approved?`<button class="full small-button" onclick="approveReport('${escapeHtml(r.id)}')">Konfirmasi & Tampilkan di Halaman Utama</button>`:""}
+  </div>`;
+ }).join(""):'<p class="muted">Belum ada laporan tersimpan.</p>';
+}
+async function approveReport(id){
+ if(!confirm("Konfirmasi laporan ini dan tampilkan di halaman utama?"))return;
+ const {error}=await db.from("donation_reports").update({approved:true}).eq("id",id);
+ if(error){alert("Gagal mengonfirmasi laporan: "+error.message);return}
+ alert("Laporan berhasil dikonfirmasi dan sekarang tampil di halaman utama.");
+ await loadAdminReports();
+ await loadPublicTransparency();
 }
 async function editReport(id){
  const {data,error}=await db.from("donation_reports").select("*").eq("id",id).single();
  if(error){alert("Gagal membuka laporan: "+error.message);return}
- document.getElementById("reportId").value=data.id;document.getElementById("reportDate").value=data.report_date;document.getElementById("reportNote").value=data.note||"";
+ document.getElementById("reportId").value=data.id;
+ document.getElementById("reportDate").value=data.report_date;
+ document.getElementById("reportNote").value=data.note||"";
  document.getElementById("reportAmountPreview").textContent=rupiah(data.donation_total);
  document.getElementById("reportBreakdownPreview").textContent=`Nasi ${data.nasi_qty} porsi · Ayam ${data.ayam_qty} porsi · ${data.order_count} pesanan`;
+ try{
+  const p=getWeekPeriod(data.report_date);
+  document.getElementById("reportPeriodPreview").textContent=`Periode perhitungan: ${formatDate(p.weekStart)} – ${formatDate(p.weekEnd)}`;
+ }catch(e){
+  document.getElementById("reportPeriodPreview").textContent="Periode laporan belum valid";
+ }
  document.querySelectorAll("details.admin-section").forEach(d=>d.open=d.querySelector("summary").textContent.includes("Tambah / Edit Laporan"));
  document.getElementById("reportDate").scrollIntoView({behavior:"smooth",block:"center"});
 }
@@ -419,19 +646,32 @@ async function uploadGallery(){
  const {data:urlData}=db.storage.from(BUCKET).getPublicUrl(path);
  const {error}=await db.from("gallery").insert({photo_url:urlData.publicUrl,caption});
  if(error){alert("Foto terunggah, tetapi catatan galeri gagal: "+error.message);return}
- alert("Dokumentasi berhasil diunggah.");document.getElementById("galleryFile").value="";document.getElementById("galleryCaption").value="";
- await loadGallery();await loadPublicGallery();
+ alert("Dokumentasi berhasil diunggah.");
+ document.getElementById("galleryFile").value="";
+ document.getElementById("galleryCaption").value="";
+ await loadGallery();
+ await loadPublicGallery();
 }
-function getGalleryStoragePath(url){const marker="/storage/v1/object/public/"+BUCKET+"/",p=url.indexOf(marker);if(p===-1)return null;try{return decodeURIComponent(url.substring(p+marker.length))}catch(e){return url.substring(p+marker.length)}}
+function getGalleryStoragePath(url){
+ const marker="/storage/v1/object/public/"+BUCKET+"/",p=url.indexOf(marker);
+ if(p===-1)return null;
+ try{return decodeURIComponent(url.substring(p+marker.length))}
+ catch(e){return url.substring(p+marker.length)}
+}
 async function deleteGalleryPhoto(url){
  if(!confirm("Yakin ingin menghapus foto dokumentasi ini?"))return;
- const path=getGalleryStoragePath(url);if(!path){alert("Lokasi file foto tidak dikenali.");return}
- const {error:se}=await db.storage.from(BUCKET).remove([path]);if(se){alert("Gagal menghapus file foto: "+se.message);return}
- const {error}=await db.from("gallery").delete().eq("photo_url",url);if(error){alert("File foto terhapus tetapi catatan galeri gagal dihapus: "+error.message);return}
- await loadGallery();await loadPublicGallery();
+ const path=getGalleryStoragePath(url);
+ if(!path){alert("Lokasi file foto tidak dikenali.");return}
+ const {error:se}=await db.storage.from(BUCKET).remove([path]);
+ if(se){alert("Gagal menghapus file foto: "+se.message);return}
+ const {error}=await db.from("gallery").delete().eq("photo_url",url);
+ if(error){alert("File foto terhapus tetapi catatan galeri gagal dihapus: "+error.message);return}
+ await loadGallery();
+ await loadPublicGallery();
 }
 async function loadGallery(){
- const {data,error}=await db.from("gallery").select("*").order("created_at",{ascending:false}),el=document.getElementById("galleryList");
+ const {data,error}=await db.from("gallery").select("*").order("created_at",{ascending:false});
+ const el=document.getElementById("galleryList");
  if(error){el.innerHTML='<p class="muted">Gagal memuat dokumentasi.</p>';return}
  el.innerHTML=(data||[]).map(x=>`<div class="order"><img src="${escapeHtml(x.photo_url)}" style="width:100%;max-height:180px;object-fit:cover;border-radius:8px"><p>${escapeHtml(x.caption||"")}</p><button class="full outline-danger" onclick="deleteGalleryPhoto('${escapeHtml(x.photo_url)}')">Hapus Foto Ini</button></div>`).join("")||'<p class="muted">Belum ada dokumentasi.</p>';
 }
